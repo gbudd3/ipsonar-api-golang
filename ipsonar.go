@@ -525,13 +525,13 @@ func (s *server) WaitForReportRegexp(d time.Duration, r *regexp.Regexp) chan *Re
 
 //---------------------------------------------------------
 func seenBaseDir() string {
-	return "/u/integration/var"
+	return "/u/integration"
 }
 
 //---------------------------------------------------------
 func ProcessedReport(reportId int, intName string) bool {
 	fileName := fmt.Sprintf("/report%d", reportId)
-	_, err := os.Stat(seenBaseDir() + "/" + intName + fileName)
+	_, err := os.Stat(seenBaseDir() + "/" + intName + "/var/" + fileName)
 	if err == nil {
 		return true
 	} else {
@@ -541,7 +541,7 @@ func ProcessedReport(reportId int, intName string) bool {
 
 //---------------------------------------------------------
 func MarkReportProcessed(reportId int, intName string) error {
-	dirString := seenBaseDir() + "/" + intName
+	dirString := seenBaseDir() + "/" + intName + "/var/"
 	_, err := os.Stat(dirString)
 	if err != nil {
 		if os.IsNotExist(err) {
