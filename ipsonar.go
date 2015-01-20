@@ -13,7 +13,6 @@ import (
 	"io"
 	"mime/multipart"
 	"net/http"
-	"os"
 	"regexp"
 	"strconv"
 	"syscall"
@@ -521,44 +520,6 @@ func (s *server) WaitForReportRegexp(d time.Duration, r *regexp.Regexp) chan *Re
 		}
 	}()
 	return reportChan
-}
-
-//---------------------------------------------------------
-func seenBaseDir() string {
-	return "/u/integration"
-}
-
-//---------------------------------------------------------
-func ProcessedReport(reportId int, intName string) bool {
-	fileName := fmt.Sprintf("/report%d", reportId)
-	_, err := os.Stat(seenBaseDir() + "/" + intName + "/var/" + fileName)
-	if err == nil {
-		return true
-	} else {
-		return false
-	}
-}
-
-//---------------------------------------------------------
-func MarkReportProcessed(reportId int, intName string) error {
-	dirString := seenBaseDir() + "/" + intName + "/var/"
-	_, err := os.Stat(dirString)
-	if err != nil {
-		if os.IsNotExist(err) {
-			err := os.Mkdir(dirString, 0770)
-			if err != nil {
-				return err
-			}
-		} else {
-			return err
-		}
-	} // Directory present, create file
-	file, err := os.Create(dirString + fmt.Sprintf("/report%d", reportId))
-	if err != nil {
-		return err
-	}
-	file.Close()
-	return nil
 }
 
 //-----------------------------------------------------------
