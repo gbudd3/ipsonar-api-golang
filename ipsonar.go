@@ -490,7 +490,7 @@ func (s *server) WaitForReportRegexp(d time.Duration, r *regexp.Regexp) chan *Re
 	reportChan := make(chan *Report, 10)
 	var lastSeenReport int
 	var maxReport int
-	s2 := s.Copy()
+	s2 := s.Copy() // Copy so as not to mess up any other queries against this RSN
 	// Periodically poll the server writing reports to reportChan
 	go func() {
 		for {
