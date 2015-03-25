@@ -565,6 +565,10 @@ func MarkReportProcessed(reportId int, intName string) error {
 func (s *server) WriteReportAttributes(attributes []CustomAttribute, reportId string) error {
 	outbuf := new(bytes.Buffer)
 
+	if len(attributes) == 0 { // Return if nothing to write
+		return nil
+	}
+
 	w := multipart.NewWriter(outbuf)
 
 	label, err := w.CreateFormField("fmt")
@@ -589,6 +593,11 @@ func (s *server) WriteReportAttributes(attributes []CustomAttribute, reportId st
 		if len(v.Value) == 0 {
 			continue
 		}
+
+		if len(v.Name) == 0 {
+			return errors.New(fmt.Sprintf("Must have an attribute name (%v+)", v))
+		}
+
 		outbuf.WriteString(fmt.Sprintf("%s,%s,\"%s\"\n",
 			v.CIDR, v.Name, v.Value))
 	}
