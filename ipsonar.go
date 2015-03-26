@@ -106,6 +106,7 @@ type Server interface {
 	WaitForReport(d time.Duration) chan *Report
 	ServerError() error
 	WriteReportAttributes(attributes []CustomAttribute, reportID string) error
+	ClearReportAttributes(attributeName, reportID string) error
 }
 
 //-----------------------------------------------------------
@@ -612,4 +613,12 @@ func (s *server) WriteReportAttributes(attributes []CustomAttribute, reportId st
 	}
 
 	return nil
+}
+
+func (s *server) ClearReportAttributes(attributeName, reportId string) error {
+	rsn := s.Copy()
+	_, err := rsn.Query("attribute.removeAttributes", Query{
+		"q.f.attribute.attributeType": attributeName,
+		"q.f.report.id":               reportId})
+	return err
 }
