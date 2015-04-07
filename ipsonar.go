@@ -15,6 +15,7 @@ import (
 	"net/http"
 	"os"
 	"regexp"
+	"sort"
 	"strconv"
 	"syscall"
 	"time"
@@ -107,6 +108,34 @@ type Server interface {
 	ServerError() error
 	WriteReportAttributes(attributes []CustomAttribute, reportID string) error
 	ClearReportAttributes(attributeName, reportID string) error
+	Reports() ([]*Report, error)
+}
+
+// Return a slice of the reports on a RSN
+// Sorted in descending report number
+func (s *server) Reports() ([]*Report, error) {
+	reports := make([]*Report, 0)
+	s2 := s.Copy()
+	_, err := s2.Query("config.reports", Query{})
+	if err != nil {
+		return nil, err
+	}
+	s2.Each(func(item Data) {
+		rx := regexp.MustCompile(`\@Date\((\d+)\)`)
+		x, _ := strconv.Atoi(rx.FindStringSubmatch(item.String("timestamp"))[1])
+		x64 := uint64(x)
+		r := Report{
+			Id:        item.Int("id"),
+			Ipcount:   item.Int("ipcount"),
+			Name:      item.String("name"),
+			Tag:       item.String("tag"),
+			Timestamp: time.Unix(int64(x64/1000), int64((x64%1000)*1000)),
+			Title:     item.String("title"),
+		}
+		reports = append(reports, &r)
+	})
+	sort.Sort(ByIdDesc{reports})
+	return reports, nil
 }
 
 //-----------------------------------------------------------
@@ -479,6 +508,18 @@ type Report struct {
 	Timestamp time.Time
 	Title     string
 }
+
+// Helper type and functions to sort Reports
+
+type Reports []*Report
+
+func (s Reports) Len() int      { return len(s) }
+func (s Reports) Swap(i, j int) { s[i], s[j] = s[j], s[i] }
+
+type ById struct{ Reports }
+type ByIdDesc struct{ Reports }
+
+func (s ByIdDesc) Less(i, j int) bool { return s.Reports[i].Id > s.Reports[j].Id }
 
 //-----------------------------------------------------------
 func (s *server) WaitForReport(d time.Duration) chan *Report {
