@@ -211,7 +211,7 @@ func (s *server) Query(call string, parameters Query) (int, error) {
 	if parameters != nil {
 		// Set default q.pageSize
 		if _, ok := parameters["q.pageSize"]; !ok {
-			parameters["q.pageSize"] = "100"
+			parameters["q.pageSize"] = "1000"
 		}
 
 		for key, value := range parameters {
@@ -222,7 +222,7 @@ func (s *server) Query(call string, parameters Query) (int, error) {
 			queryUrl += fmt.Sprintf("&%s=%s", key, value)
 		}
 	} else {
-		parameters = Query{"q.pageSize": "100"}
+		parameters = Query{"q.pageSize": "1000"}
 	}
 	s.queryUrl = queryUrl
 	s.parameters = parameters
