@@ -99,6 +99,8 @@ The various NewServer functions should return one of these
 */
 type Server interface {
 	Query(call string, parameters Query) (int, error)
+	RawQuery(call string, parameters Query) io.ReadCloser
+	Post(url, contentType string, outbuf *bytes.Buffer) (io.ReadCloser, error)
 	/* Run this function over each item the Query returns */
 	Each(each_func func(Data))
 	Next() Data
@@ -239,6 +241,35 @@ func (s *server) Query(call string, parameters Query) (int, error) {
 
 	return s.maxRow, s.serverError
 
+}
+
+func (s *server) RawQuery(call string, parameters Query) io.ReadCloser {
+	queryUrl := fmt.Sprintf("reporting/api/service/%s?fmt=json", call)
+
+	if parameters != nil {
+		// Set default q.pageSize
+		if _, ok := parameters["q.pageSize"]; !ok {
+			parameters["q.pageSize"] = "1000"
+		}
+
+		for key, value := range parameters {
+			//Remove user-specified fields that we're handling
+			if key == "fmt" || key == "q.page" {
+				continue
+			}
+			queryUrl += fmt.Sprintf("&%s=%s", key, value)
+		}
+	} else {
+		parameters = Query{"q.pageSize": "1000"}
+	}
+	s.queryUrl = queryUrl
+	s.parameters = parameters
+	s.currentPage = 0
+	s.pageSize, _ = strconv.Atoi(parameters["q.pageSize"].(string))
+	s.serverError = nil
+	s.row = 0
+
+	return s.query(queryUrl)
 }
 
 //-----------------------------------------------------------
@@ -684,6 +715,10 @@ func (s *server) WriteReportAttributes(attributes []CustomAttribute, reportId st
 	}
 
 	return nil
+}
+
+func (s *server) Post(url, contentType string, outbuf *bytes.Buffer) (io.ReadCloser, error) {
+	return s.post(url, contentType, outbuf)
 }
 
 func (s *server) ClearReportAttributes(attributeName, reportId string) error {
