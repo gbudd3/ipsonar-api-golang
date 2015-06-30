@@ -181,6 +181,10 @@ func (s *server) getPage(pageNum int) {
 		count = 0
 	}
 
+	if l := len(results["items"].([]interface{})); l > 1 && count == 0 {
+		count = l - 1
+	}
+
 	if count == 0 {
 		s.maxRow = 0
 	} else {
@@ -384,6 +388,32 @@ func NewLocalServer() *LocalServer {
 	return &server
 }
 
+//-----------------------------------------------------------
+type testServer struct {
+	server
+	directory string
+}
+
+//-----------------------------------------------------------
+/*
+// Setup a dummy connection for testing the API wrapper
+func newTestServer(path String) *testServer {
+	var server LocalServer
+	server.directory = path
+
+	//TODO query should return an error as appropriate
+	server.query = func(request string) io.ReadCloser {
+		file, err := os.Open(path + "/" + request)
+		if err != nil {
+			fmt.Println(err)
+			return nil
+		}
+		return file
+	}
+
+	return &server
+}
+*/
 //===========================================================
 type Data map[string]interface{}
 type Query map[string]interface{}
