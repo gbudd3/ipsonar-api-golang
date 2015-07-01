@@ -367,6 +367,7 @@ func NewServerWithPassword(name, username, password string) *ServerWithPassword 
 		if err != nil {
 			return nil, err
 		}
+		req.SetBasicAuth(username, password)
 		req.Header.Set("Content-Type", contentType)
 		resp, err := client.Do(req)
 		if err != nil {
