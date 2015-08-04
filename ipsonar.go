@@ -553,7 +553,24 @@ Example:
 ip := item.Interface("ip", "address")
 */
 func (data *Data) Array(s ...string) []interface{} {
+	if data.Interface(s...) == nil {
+		r := make([]interface{}, 0)
+		return r
+	}
 	return data.Interface(s...).([]interface{})
+}
+
+func (data *Data) IntSlice(s ...string) []int {
+	if data.Interface(s...) == nil {
+		r := make([]int, 0)
+		return r
+	}
+	a := data.Interface(s...).([]interface{})
+	b := make([]int, len(a), len(a))
+	for i := range a {
+		b[i] = int(a[i].(float64))
+	}
+	return b
 }
 
 //TODO I'm not sure what happens if the resulting thing isn't
